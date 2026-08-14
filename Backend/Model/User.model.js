@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
         type: String,
         required: [function() {return !this.googleId;}, 'Password is required'],
         minlength: [6, 'Password must be at least 6 characters'],
+        select: false,
     },
     avatar: {
       type: String,
@@ -51,19 +52,29 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// ─── Indexes ──────────────────────────────────────────────────────────────────
-userSchema.index({ email: 1 });       
-
+       
 userSchema.pre('save',async function(){
     if(!this.isModified('password') || !this.password) return ;
     this.password = await bcrypt.hash(this.password,10);  
+    
 });
-
-
 // Compare entered password with hashed password in DB
 userSchema.methods.comparePassword = function(candiate){
     if(!this.password) return Promise.resolve(false);
     return bcrypt.compare(candiate,this.password);
 }
+
+userSchema.methods.toSafeObject = function() {
+  return {
+    _id: this._id,
+    name: this.name,
+    email: this.email,
+    avatar: this.avatar,
+    lastLogin: this.lastLogin,
+    createdAt: this.createdAt,
+  };
+};
+
+
 
 module.exports = mongoose.model('User', userSchema);

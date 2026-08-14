@@ -25,16 +25,13 @@ app.get('/', (req, res) => {
 
 // error middleware 
 
-app.use((err,req,res,next) => { 
-    console.log(err.stack);
-    res.status(500).json({message: "Internal Server Error"});
-
+app.use((req, res) => {                    
+  res.status(404).json({ message: 'Not Found' });
 });
 
-app.use((req,res) => {
-    res.status(404).json({
-        message : "Not Found",
-    });
+app.use((err, req, res, next) => {          
+  console.log(err.stack);
+  res.status(500).json({ message: 'Internal Server Error' });
 });
 
 connectDB()
