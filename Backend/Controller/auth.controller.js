@@ -4,13 +4,10 @@ const jwt = require('jsonwebtoken');
 
 // local Module
 const User = require('../Model/User.model')
+const {sendTokenResponse} = require('../utils/generateTokens');
 
 
-const signToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN,
-    });
-}
+
 
 exports.register = async (req, res) => {
     try {
@@ -25,7 +22,7 @@ exports.register = async (req, res) => {
         }
 
         const user = await User.create({ name, email, password });
-        const token = signToken(user._id);
+       sendTokenResponse(user, 201, res);
         user.lastLogin = new Date();
         await user.save({ validateBeforeSave: false });
         res.status(201).json({
@@ -48,26 +45,28 @@ exports.register = async (req, res) => {
 }
 
 exports.getlogin = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        // include password because schema likely sets password as select:false
-        const user = await User.findOne({ email }).select('+password');
+  try {
+    const { email, password } = req.body;
 
-        if (!user || !(await user.comparePassword(password))) {
-            return res.status(400).json({ success: false, message: 'Invalid email or password' });
-        }
-        const token = signToken(user._id);
-        // update last login timestamp
-        user.lastLogin = new Date();
-        await user.save({ validateBeforeSave: false });
-        res.status(201).json({
-            success: true,
-            token,
-            user: user.toSafeObject(),
-        });
+    // Must use .select('+password') since select: false on schema
+    const user = await User.findOne({ email }).select('+password');
 
-    } catch (error) {
-
-        res.status(500).json({ message: error.message });
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
+      });
     }
-}
+
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save({ validateBeforeSave: false });
+
+    sendTokenResponse(user, 200, res);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again later.',
+    });
+  }
+};

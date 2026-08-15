@@ -4,6 +4,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const http = require('http')
+const cookieParser = require('cookie-parser');
 // Local Module
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.route');
@@ -12,8 +13,12 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true, 
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
