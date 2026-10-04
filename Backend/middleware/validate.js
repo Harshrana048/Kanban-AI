@@ -2,54 +2,61 @@
 const { z } = require('zod');
 
 const validate = (schemas) => (req, res, next) => {
-  try {
-    // 1. Ensure schemas object exists
-    if (!schemas) {
-      throw new Error("No schemas were passed to the validate middleware!");
-    }
+  // If the user forgot to pass schemas
+  if (!schemas) {
+    return res.status(500).json({ error: "Validation schema is required" });
+  }
 
-    // 2. Check body if schema is provided
-    if (schemas.body) {
-      req.body = schemas.body.parse(req.body);
-    }
-    
-    // 3. Check params if schema is provided
-    if (schemas.params) {
-      req.params = schemas.params.parse(req.params);
-    }
+  
+  const schemaConfig = schemas.safeParse ? { body: schemas } : schemas;
 
-    // 4. Check query if schema is provided
-    if (schemas.query) {
-      req.query = schemas.query.parse(req.query);
-    }
+  const errors = [];
 
-    return next();
-  } catch (error) {
-    // Check if it's a Zod error (using both issues and errors fields safely)
-    const zodIssues = error?.issues || error?.errors;
-
-    if (zodIssues && Array.isArray(zodIssues)) {
-      const formattedErrors = zodIssues.map((err) => ({
-        field: err.path.join('.'),
-        message: err.message,
-      }));
-
-      return res.status(400).json({ 
-        status: 'fail', 
-        errors: formattedErrors 
+  // 1. Check Body
+  if (schemaConfig.body) {
+    const result = schemaConfig.body.safeParse(req.body);
+    if (!result.success) {
+      result.error.issues.forEach((err) => {
+        errors.push({ field: err.path.join('.'), message: err.message });
       });
+    } else {
+      req.body = result.data; 
     }
+  }
 
-    // CRITICAL: If it's NOT a Zod error, print it to the terminal so we can see it!
-    console.error("====== REAL ERROR INSIDE MIDDLEWARE ======");
-    console.error(error);
-    console.error("==========================================");
+  // 2. Check Params
+  if (schemaConfig.params) {
+    const result = schemaConfig.params.safeParse(req.params);
+    if (!result.success) {
+      result.error.issues.forEach((err) => {
+        errors.push({ field: err.path.join('.'), message: err.message });
+      });
+    } else {
+      Object.assign(req.params, result.data);
+    }
+  }
 
-    return res.status(500).json({
-      status: 'error',
-      message: error.message || 'An unexpected error occurred'
+  // 3. Check Query
+  if (schemaConfig.query) {
+    const result = schemaConfig.query.safeParse(req.query);
+    if (!result.success) {
+      result.error.issues.forEach((err) => {
+        errors.push({ field: err.path.join('.'), message: err.message });
+      });
+    } else {
+      Object.assign(req.query, result.data);
+    }
+  }
+
+  
+  if (errors.length > 0) {
+    return res.status(400).json({
+      status: 'fail',
+      errors: errors,
     });
   }
+
+  return next();
 };
 
 module.exports = validate;
