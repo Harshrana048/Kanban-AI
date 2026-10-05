@@ -7,42 +7,43 @@ const User = require('../Model/User.model')
 const {sendTokenResponse} = require('../utils/generateTokens');
 
 
-
-
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, confirmpassword } = req.body;
-        // 2. Check if user already exists
+        const { name, email, password } = req.body;
+
+        // Check if user already exists
         const existingUser = await User.findOne({ email });
+
         if (existingUser) {
             return res.status(409).json({
                 success: false,
-                message: 'User with this email already exists',
+                message: "User with this email already exists",
             });
         }
 
-        const user = await User.create({ name, email, password });
-       sendTokenResponse(user, 201, res);
-        user.lastLogin = new Date();
-        await user.save({ validateBeforeSave: false });
-        res.status(201).json({
-            success: true,
-            token,
-            user: user.toSafeObject(),
+        // Create user
+        const user = await User.create({
+            name,
+            email,
+            password,
         });
 
+        user.lastLogin = new Date();
+
+      await user.save();
+
+        // This already generates JWT and sends response
+        return sendTokenResponse(user, 201, res);
 
     } catch (error) {
-        console.log(error.message);
+        console.error("Register error:", error);
+
         return res.status(500).json({
-
             success: false,
-            message: 'Server error. Please try again later.',
+            message: "Server error. Please try again later.",
         });
-
     }
-
-}
+};
 
 exports.getlogin = async (req, res) => {
   try {
@@ -60,9 +61,9 @@ exports.getlogin = async (req, res) => {
 
     // Update last login
     user.lastLogin = new Date();
-    await user.save({ validateBeforeSave: false });
+    await user.save();
 
-    sendTokenResponse(user, 200, res);
+    return sendTokenResponse(user, 200, res);
   } catch (error) {
     res.status(500).json({
       success: false,

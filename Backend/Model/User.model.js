@@ -59,9 +59,9 @@ userSchema.pre('save',async function(){
     
 });
 // Compare entered password with hashed password in DB
-userSchema.methods.comparePassword = function(candiate){
+userSchema.methods.comparePassword = function(candidate){
     if(!this.password) return Promise.resolve(false);
-    return bcrypt.compare(candiate,this.password);
+    return bcrypt.compare(candidate,this.password);
 }
 
 userSchema.methods.toSafeObject = function() {
@@ -72,6 +72,7 @@ userSchema.methods.toSafeObject = function() {
     avatar: this.avatar,
     lastLogin: this.lastLogin,
     createdAt: this.createdAt,
+    isEmailVerified: this.isEmailVerified,
   };
 };
 
