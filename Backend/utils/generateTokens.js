@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const sendTokenResponse = (user, statusCode, res) => {
+const sendTokenResponse = (user, statusCode, res,message) => {
   // Generate token
   const token = jwt.sign(
     { id: user._id },
@@ -23,6 +23,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     .json({
       success: true,
       user: user.toSafeObject(),
+      message
     });
 };
 

@@ -33,7 +33,8 @@ exports.register = async (req, res) => {
       await user.save();
 
         // This already generates JWT and sends response
-        return sendTokenResponse(user, 201, res);
+        return sendTokenResponse(user, 201, res,'Registration successful. Please verify your email.'
+);
 
     } catch (error) {
         console.error("Register error:", error);
@@ -63,7 +64,7 @@ exports.getlogin = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
-    return sendTokenResponse(user, 200, res);
+    return sendTokenResponse(user, 200, res,"User Login Successfully");
   } catch (error) {
     res.status(500).json({
       success: false,
