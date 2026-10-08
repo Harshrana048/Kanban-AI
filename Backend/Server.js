@@ -2,6 +2,7 @@
 // External Module
 const express = require('express');
 const dotenv = require('dotenv');
+dotenv.config();
 const cors = require('cors');
 const http = require('http')
 const cookieParser = require('cookie-parser');
@@ -10,7 +11,7 @@ const connectDB = require('./config/db');
 const redis = require('./config/redis');
 const authRoutes = require('./routes/auth.route');
 
-dotenv.config();
+
 
 const app = express();
 const server = http.createServer(app);

@@ -1,16 +1,6 @@
 const Redis = require('ioredis');
 
-const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = process.env;
-
-if (!REDIS_HOST || !REDIS_PORT || !REDIS_PASSWORD || REDIS_PASSWORD === 'replace_with_upstash_redis_password') {
-  throw new Error('Configure REDIS_HOST, REDIS_PORT, and REDIS_PASSWORD in Backend/.env.');
-}
-
-const redis = new Redis({
-  host: REDIS_HOST,
-  port: Number(REDIS_PORT),
-  password: REDIS_PASSWORD,
-  tls: {},
+const redis = new Redis(process.env.REDIS_URL, {
   maxRetriesPerRequest: 3,
   retryStrategy(times) {
     // Retry connection with increasing delay
