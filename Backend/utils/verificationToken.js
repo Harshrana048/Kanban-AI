@@ -17,7 +17,7 @@ const generateVerificationToken = async (userId) => {
     const token = crypto.randomBytes(32).toString('hex');
 
     await redis.setex(`${VERIFY_PREFIX}${token}`, EXPIRES_IN_SEC, userId.toString());
-    await redis.setex(`${USER_PREFIX}${userId}`);
+    await redis.setex(`${USER_PREFIX}${userId}`, EXPIRES_IN_SEC, token);
     return token;
 
 };

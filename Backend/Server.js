@@ -7,6 +7,7 @@ const http = require('http')
 const cookieParser = require('cookie-parser');
 // Local Module
 const connectDB = require('./config/db');
+const redis = require('./config/redis');
 const authRoutes = require('./routes/auth.route');
 
 dotenv.config();
