@@ -7,6 +7,7 @@ const User = require('../Model/User.model')
 const {sendTokenResponse} = require('../utils/generateTokens');
 
 
+
 exports.register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
